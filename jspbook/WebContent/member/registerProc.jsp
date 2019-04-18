@@ -1,11 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="member.*" %>	
+<%request.setCharacterEncoding("UTF-8"); %>
 <jsp:useBean id="member" scope="page" class="member.MemberDTO" />
 <jsp:setProperty name="member" property="*" />
 <%
 	//System.out.println(member.toString());
-	request.setCharacterEncoding("UTF-8");
 	MemberDAO mDao = new MemberDAO();
 	mDao.insertMember(member);
 	mDao.close();

@@ -40,7 +40,8 @@
 	<center><br>
 	<h3>Member Login</h3><br>
 	<hr><br>
-	<form name="loginForm" action=/jspbook/member/loginProcServlet method = post>
+	<%--<form name="loginForm" action=/jspbook/member/loginProcServlet method = post> --%>
+	<form name="loginForm" action=/jspbook/member/memberProcServlet?action=login method = post>
 		<lable><span>ID:</span>
 			<input type="text" name="id" size="10"></lable><br><br>
 		<lable><span>Password:</span>

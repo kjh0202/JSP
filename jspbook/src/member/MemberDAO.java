@@ -140,6 +140,7 @@ public class MemberDAO {
     }
     
     public void deleteMember(int memberId) {
+    	System.out.println("deleteMember" + memberId);
     	String query = "delete from member where id=?;";
     	PreparedStatement pStmt = null;
     	try {
@@ -157,6 +158,12 @@ public class MemberDAO {
 				se.printStackTrace();
 			}
 		}	
+    }
+    
+    public MemberDTO recentId() {
+    	String sql = "select * from member order by id desc limit 1;";
+    	MemberDTO mDto = selectOne(sql);
+    	return mDto;
     }
     
     public MemberDTO searchById(int memberId) {

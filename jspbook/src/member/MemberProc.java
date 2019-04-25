@@ -1,6 +1,9 @@
 package member;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Servlet implementation class memberProc
+ * Servlet implementation class MemberProc
  */
 @WebServlet("/member/memberProcServlet")
 public class MemberProc extends HttpServlet {
@@ -22,7 +25,11 @@ public class MemberProc extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		doAction(request, response);
+/*		String uri = request.getRequestURI();
+		String conPath = request.getContextPath();
+		String command = uri.substring(conPath.length());
+		System.out.println("doGet(): " + uri + ", " + conPath + ", " + command);
+*/		doAction(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -33,28 +40,63 @@ public class MemberProc extends HttpServlet {
 		MemberDAO mDao = null;
 		MemberDTO member = null;
 		RequestDispatcher rd = null;
-		int id = 0; 
-		String name = "";
-		String birthday = "";
-		String address = "";
-		String password = ""; 
-		String message = "";
+		int id = 0;
+		int curPage = 1;
+		int memberId = 0;
+		String password = null;
+		String name = null;
+		String birthday = null;
+		String address = null;
+		String message = null;
 		String url = null;
-		member = null;
 		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession();
 		String action = request.getParameter("action");
+		List<String> pageList = new ArrayList<String>();
 		
-		//수정, 삭제 등 확장성을 위해서
 		switch(action) {
-		case "update" :		//수정 버튼 클릭 시
+		case "list":
+			if (!request.getParameter("page").equals("")) {
+				curPage = Integer.parseInt(request.getParameter("page"));
+			}
+			mDao = new MemberDAO();
+			int count = mDao.getCount();
+			if (count == 0)			// 데이터가 없을 때 대비
+				count = 1;
+			int pageNo = (int)Math.ceil(count/10.0);
+			if (curPage > pageNo)	// 경계선에 걸렸을 때 대비
+				curPage--;
+			session.setAttribute("currentMemberPage", curPage);
+			// 리스트 페이지의 하단 페이지 데이터 만들어 주기
+			String page = null;
+			page = "<a href=#>&laquo;</a>&nbsp;";
+			pageList.add(page);
+			for (int i=1; i<=pageNo; i++) {
+				if (curPage == i)
+					page = "&nbsp;" + i + "&nbsp;";
+				else
+					page = "&nbsp;<a href=memberProcServlet?action=list&page=" + i + ">" + i + "</a>&nbsp;";
+				pageList.add(page);
+			}
+			page = "&nbsp;<a href=#>&raquo;</a>";
+			pageList.add(page);
+			 
+			List<MemberDTO> mList = mDao.selectAll(curPage);
+			request.setAttribute("memberList", mList);
+			request.setAttribute("memberPageList", pageList);
+			rd = request.getRequestDispatcher("main.jsp");
+	        rd.forward(request, response);
+			break;
+			
+		case "update":		// 수정 버튼 클릭 시
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
 			if (id != (Integer)session.getAttribute("memberId")) {
-				message = "id = " + id + " 에 대한 수정 권한이 없습니다";		//alert 메시지
-				url = "loginMain.jsp";
+				message = "id = " + id + " 에 대한 수정 권한이 없습니다.";
 				request.setAttribute("message", message);
+				curPage = (int)session.getAttribute("currentMemberPage");
+				url = "memberProcServlet?action=list&page=" + curPage;
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
@@ -65,18 +107,18 @@ public class MemberProc extends HttpServlet {
 			mDao.close();
 			request.setAttribute("member", member);
 			rd = request.getRequestDispatcher("update.jsp");
-			rd.forward(request, response);
-			break;
-			
-		case "delete" :		//삭제 버튼 클릭 시
+	        rd.forward(request, response);
+	        break;
+	        
+		case "delete":		// 삭제 버튼 클릭 시
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
-			
 			if (id != (Integer)session.getAttribute("memberId")) {
-				message = "id = " + id + " 에 대한 삭제 권한이 없습니다";		//alert 메시지
-				url = "loginMain.jsp";
+				message = "id = " + id + " 에 대한 삭제 권한이 없습니다.";
 				request.setAttribute("message", message);
+				curPage = (int)session.getAttribute("currentMemberPage");
+				url = "memberProcServlet?action=list&page=" + curPage;
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
@@ -86,15 +128,20 @@ public class MemberProc extends HttpServlet {
 			mDao.deleteMember(id);
 			mDao.close();
 			//response.sendRedirect("loginMain.jsp");
+			message = "id = " + id + " 이/가 삭제되었습니다.";
+			request.setAttribute("message", message);
+			curPage = (int)session.getAttribute("currentMemberPage");
+			url = "memberProcServlet?action=list&page=" + curPage;
+			request.setAttribute("url", url);
+			rd = request.getRequestDispatcher("alertMsg.jsp");
+			rd.forward(request, response);
 			
-			break;
-			
-		case "login" :		//login할때
+		case "login":		// login 할 때
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
 			password = request.getParameter("password");
-
+			
 			mDao = new MemberDAO();
 			int result = mDao.verifyIdPassword(id, password);
 			String errorMessage = null;
@@ -109,36 +156,27 @@ public class MemberProc extends HttpServlet {
 				errorMessage = "DB 오류";
 			}
 			
-			//System.out.println(errorMessage);
 			if (result == MemberDAO.ID_PASSWORD_MATCH) {
-				member =  mDao.searchById(id);
+				member = mDao.searchById(id);
 				session.setAttribute("memberId", id);
 				session.setAttribute("memberName", member.getName());
-				response.sendRedirect("loginMain.jsp");
+				response.sendRedirect("memberProcServlet?action=list&page=1");
 			} else {
-				//방법1 - 상대방이 getParameter("error")로 받을 때
-				//String uri = "login.jsp?error=" + URLEncoder.encode(errorMessage, "UTF-8");
-				//response.sendRedirect(uri);
-				/*방법2 - 상대방이 getParameter("error")로 받을 때
-				String uri = "login.jsp" + "?error=" + errorMessage;
-				RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
-				dispatcher.forward(request, response);*/
-				//방법3 - 상대방이 getAttribute("error")로 받을 때
-				request.setAttribute("error", errorMessage);
-				rd = request.getRequestDispatcher("login.jsp");
-				rd.forward(request, response);
-				//pageContext.forward("login.jsp");
+				request.setAttribute("message", errorMessage);
+				request.setAttribute("url", "login.jsp");
+				rd = request.getRequestDispatcher("alertMsg.jsp");
+		        rd.forward(request, response);
 			}
 			mDao.close();
 			break;
-					
-		case "logout" :			//로그아웃할 때
+		
+		case "logout":			// 로그아웃할 때
 			session.removeAttribute("memberId");
 			session.removeAttribute("memberName");
 			response.sendRedirect("login.jsp");
 			break;
 			
-		case "register" :		//회원 등록할 때
+		case "register":		// 회원 등록할 때
 			password = request.getParameter("password");
 			name = request.getParameter("name");
 			birthday = request.getParameter("birthday");
@@ -153,19 +191,18 @@ public class MemberProc extends HttpServlet {
 			session.setAttribute("memberName", name);
 			
 			message = "귀하의 아이디는 " + member.getId() + " 입니다.";
-			url = "loginMain.jsp";
 			request.setAttribute("message", message);
+			url = "memberProcServlet?action=list&page=1";
 			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
 			rd.forward(request, response);
 			mDao.close();
 			break;
 			
-		case "execute" :
+		case "execute":			// 회원 수정정보 입력 후 실행할 때
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
-
 			name = request.getParameter("name");
 			birthday = request.getParameter("birthday");
 			address = request.getParameter("address");
@@ -177,15 +214,16 @@ public class MemberProc extends HttpServlet {
 			mDao.updateMember(member);
 			mDao.close();
 			
-			message = "다음과 같이 수정하였습니다.\\n" + member.toString();		//alert 메시지
+			message = "다음과 같이 수정하였습니다.\\n" + member.toString();
 			request.setAttribute("message", message);
-			request.setAttribute("url", "loginMain.jsp");
+			curPage = (int)session.getAttribute("currentMemberPage");
+			url = "memberProcServlet?action=list&page=" + curPage;
+			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
-			rd.forward(request, response);
-			//response.sendRedirect("loginMain.jsp");
+	        rd.forward(request, response);
 			break;
-		default :	
+			
+		default:
 		}
 	}
-
 }

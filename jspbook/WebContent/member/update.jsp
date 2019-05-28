@@ -25,13 +25,13 @@
 	<c:set var="member" value="${requestScope.member}"/>
 	<form name="updateForm" action="/jspbook/member/memberProcServlet?action=execute" method=post>
 		<input type="hidden" id="id" name="id" value="${member.id}">
-		<label><span>아이디:</span>"${member.id}"></label>
+		<label><span>아이디:</span>${member.id}</label>
 		<label><span>이름:</span>
-			<input type="text" name="name" value="${member.name}"> size="10"></label>
+			<input type="text" name="name" value="${member.name}"></label>
 		<label><span>생일:</span>
-			<input type="text" name="birthday" value="${member.birthday}">size="10"></label>
+			<input type="text" name="birthday" value="${member.birthday}"></label>
 		<label><span>주소:</span>
-			<input type="text" name="address" value="${member.address}"> size="40"></label>	
+			<input type="text" name="address" value="${member.address}"></label>	
 			<br>
 		<label><span></span><input type="submit" value="회원 수정" name="B1">&nbsp;&nbsp;
 			<input type="reset" value="재작성" name="B2"></label>

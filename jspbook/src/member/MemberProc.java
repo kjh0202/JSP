@@ -12,12 +12,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet implementation class MemberProc
  */
 @WebServlet("/member/memberProcServlet")
 public class MemberProc extends HttpServlet {
+	private static final Logger LOG = LoggerFactory.getLogger(MemberProc.class);
 	private static final long serialVersionUID = 1L;
        
     public MemberProc() {
@@ -37,6 +40,7 @@ public class MemberProc extends HttpServlet {
 	}
 	
 	protected void doAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		LOG.trace("doAction_시작");
 		MemberDAO mDao = null;
 		MemberDTO member = null;
 		RequestDispatcher rd = null;
@@ -56,6 +60,7 @@ public class MemberProc extends HttpServlet {
 		
 		switch(action) {
 		case "list":
+			LOG.trace("list_시작");
 			if (!request.getParameter("page").equals("")) {
 				curPage = Integer.parseInt(request.getParameter("page"));
 			}
@@ -86,9 +91,11 @@ public class MemberProc extends HttpServlet {
 			request.setAttribute("memberPageList", pageList);
 			rd = request.getRequestDispatcher("main.jsp");
 	        rd.forward(request, response);
+	        LOG.trace("main_이동 성공");
 			break;
 			
 		case "update":		// 수정 버튼 클릭 시
+			LOG.trace("update_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -100,6 +107,7 @@ public class MemberProc extends HttpServlet {
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
+				 LOG.trace("alertMsg.jsp_이동 성공");
 				break;
 			}
 			mDao = new MemberDAO();
@@ -111,6 +119,7 @@ public class MemberProc extends HttpServlet {
 	        break;
 	        
 		case "delete":		// 삭제 버튼 클릭 시
+			LOG.trace("delete_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -122,6 +131,7 @@ public class MemberProc extends HttpServlet {
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
+				 LOG.trace("alertMsg_이동 성공");
 				break;
 			}
 			mDao = new MemberDAO();
@@ -134,9 +144,11 @@ public class MemberProc extends HttpServlet {
 			url = "memberProcServlet?action=list&page=" + curPage;
 			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
+			 LOG.trace("alertMsg_이동 성공");
 			rd.forward(request, response);
 			
 		case "login":		// login 할 때
+			LOG.trace("login_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -154,7 +166,9 @@ public class MemberProc extends HttpServlet {
 				errorMessage = "패스워드가 틀렸음"; break;
 			case MemberDAO.DATABASE_ERROR:
 				errorMessage = "DB 오류";
+			default: errorMessage="login 실패";
 			}
+			
 			
 			if (result == MemberDAO.ID_PASSWORD_MATCH) {
 				member = mDao.searchById(id);
@@ -166,23 +180,27 @@ public class MemberProc extends HttpServlet {
 				request.setAttribute("url", "login.jsp");
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 		        rd.forward(request, response);
+		   	 	LOG.trace("alertMsg_이동 성공");
 			}
 			mDao.close();
 			break;
 		
 		case "logout":			// 로그아웃할 때
+			LOG.trace("logout_시작");
 			session.removeAttribute("memberId");
 			session.removeAttribute("memberName");
 			response.sendRedirect("login.jsp");
+			 LOG.trace("login_이동 성공");
 			break;
 			
 		case "register":		// 회원 등록할 때
+			LOG.trace("register_시작");
 			password = request.getParameter("password");
 			name = request.getParameter("name");
 			birthday = request.getParameter("birthday");
 			address = request.getParameter("address");
 			member = new MemberDTO(password, name, birthday, address);
-			System.out.println(member.toString());
+			LOG.trace("register_toString성공");
 			
 			mDao = new MemberDAO();
 			mDao.insertMember(member);
@@ -196,10 +214,12 @@ public class MemberProc extends HttpServlet {
 			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
 			rd.forward(request, response);
+			LOG.trace("alertMsg_이동 성공");
 			mDao.close();
 			break;
 			
 		case "execute":			// 회원 수정정보 입력 후 실행할 때
+			LOG.trace("execute_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -208,7 +228,7 @@ public class MemberProc extends HttpServlet {
 			address = request.getParameter("address");
 			
 			member = new MemberDTO(id, "*", name, birthday, address);
-			System.out.println(member.toString());
+			LOG.trace("execute_toString성공");
 			
 			mDao = new MemberDAO();
 			mDao.updateMember(member);
@@ -221,6 +241,7 @@ public class MemberProc extends HttpServlet {
 			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
 	        rd.forward(request, response);
+	   	 	LOG.trace("alertMsg_이동 성공");
 			break;
 			
 		default:

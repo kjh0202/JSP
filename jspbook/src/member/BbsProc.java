@@ -12,11 +12,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Servlet implementation class BbsProc
  */
 @WebServlet("/member/bbsServlet")
 public class BbsProc extends HttpServlet {
+	private static final Logger LOG = LoggerFactory.getLogger(BbsProc.class);
+
 	private static final long serialVersionUID = 1L;
        
     public BbsProc() {
@@ -32,6 +36,7 @@ public class BbsProc extends HttpServlet {
 	}
 
 	protected void doAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		LOG.trace("doAction_시작");
 		BbsDAO bDao = null;
 		BbsMember bMem = null;
 		BbsDTO bDto = null;
@@ -49,7 +54,7 @@ public class BbsProc extends HttpServlet {
 		try {
 			memberId = (int)session.getAttribute("memberId");
 		} catch (NullPointerException e) {
-			System.out.println("세션이 만료되었습니다.");
+			LOG.trace("세션만료");
 		}
 		if (memberId == 0) {
 			rd = request.getRequestDispatcher("login.jsp");
@@ -61,6 +66,7 @@ public class BbsProc extends HttpServlet {
 		
 		switch(action) {
 		case "list":
+			LOG.trace("list_시작");
 			if (!request.getParameter("page").equals("")) {
 				curPage = Integer.parseInt(request.getParameter("page"));
 			}
@@ -91,9 +97,11 @@ public class BbsProc extends HttpServlet {
 			request.setAttribute("pageList", pageList);
 			rd = request.getRequestDispatcher("bbsList.jsp");
 	        rd.forward(request, response);
+	        LOG.trace("bbsList_이동 성공");
 			break;
 			
 		case "write":
+			LOG.trace("write_시작");
 			title = request.getParameter("title");
 			content = lf2Br(request.getParameter("content"));
 			bDto = new BbsDTO(memberId, title, content);
@@ -102,9 +110,11 @@ public class BbsProc extends HttpServlet {
 			bDao.close();
 			response.sendRedirect("bbsServlet?action=list&page=1");
 			//response.sendRedirect("bbsList.jsp");
+			LOG.trace("bbsServlet?action=list&page=1_이동 성공");
 			break;
 			
 		case "view":
+			LOG.trace("view_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -115,9 +125,11 @@ public class BbsProc extends HttpServlet {
 			request.setAttribute("bbsMember", bMem);
 			rd = request.getRequestDispatcher("bbsView.jsp");
 	        rd.forward(request, response);
+	        LOG.trace("bbsView_이동 성공");
 			break;
 		
 		case "update":		// 수정 버튼 클릭 시
+			LOG.trace("update_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -130,6 +142,7 @@ public class BbsProc extends HttpServlet {
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
+			    LOG.trace("alertMsg_이동 성공");
 				bDao.close();
 				break;
 			}
@@ -140,9 +153,11 @@ public class BbsProc extends HttpServlet {
 			request.setAttribute("bbsMember", bMem);
 			rd = request.getRequestDispatcher("bbsUpdate.jsp");
 	        rd.forward(request, response);
+	        LOG.trace("bbsUpdate_이동 성공");
 			break;
 			
 		case "execute":		// 데이터 수정 후 실행할 때
+			LOG.trace("execute_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -154,9 +169,11 @@ public class BbsProc extends HttpServlet {
 			bDao.close();
 			curPage = (int)session.getAttribute("currentBbsPage");
 			response.sendRedirect("bbsServlet?action=list&page=" + curPage);
+			LOG.trace("bbsServlet?action=list&page=\" + curPage_이동 성공");
 			break;
 			
 		case "delete":		// 삭제 버튼 클릭 시
+			LOG.trace("delete_시작");
 			if (!request.getParameter("id").equals("")) {
 				id = Integer.parseInt(request.getParameter("id"));
 			}
@@ -170,6 +187,7 @@ public class BbsProc extends HttpServlet {
 				request.setAttribute("url", url);
 				rd = request.getRequestDispatcher("alertMsg.jsp");
 				rd.forward(request, response);
+				LOG.trace("alertMsg_이동 성공");
 				bDao.close();
 				break;
 			}
@@ -181,6 +199,7 @@ public class BbsProc extends HttpServlet {
 			request.setAttribute("url", url);
 			rd = request.getRequestDispatcher("alertMsg.jsp");
 			rd.forward(request, response);	
+			LOG.trace("alertMsg_이동 성공");
 			break;
 			
 		default:
@@ -188,6 +207,7 @@ public class BbsProc extends HttpServlet {
 	}
 	
 	protected String lf2Br(String content) {
+		LOG.trace("lf2Br_시작");
 		StringBuffer sb = new StringBuffer();
 		for (int i=0; i<content.length(); i++) {
 			if (content.charAt(i) == '\r') {
@@ -199,6 +219,7 @@ public class BbsProc extends HttpServlet {
 		return sb.toString();
 	}
 	protected String br2Lf(String content) {
+		LOG.trace("br2Lf_시작");
 		StringBuffer sb = new StringBuffer(content);
 		int count = 0;
 		while (true) {
@@ -208,6 +229,7 @@ public class BbsProc extends HttpServlet {
 			sb.delete(index, index+4);
 			count += 4;
 		}
+		LOG.trace("결과 성공");
 		return sb.toString();
 	}
 }

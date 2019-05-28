@@ -41,5 +41,6 @@
 		<input type="reset" value="취소" name="B2">
 	</form>
 		<br><br><button onclick="location.href='register.html'">회원 가입</button>
+		<!-- 오타(mregister)404에러페이지<br><br><button onclick="location.href='mregister.html'">회원 가입</button> -->
 </body>
 </html>

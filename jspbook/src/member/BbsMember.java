@@ -1,6 +1,10 @@
 package member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BbsMember {
+	private static final Logger LOG = LoggerFactory.getLogger(BbsMember.class);
+
 	private int id; 
 	private String title;
 	private String name;
@@ -24,6 +28,7 @@ public class BbsMember {
 	}
 	@Override
 	public String toString() {
+		LOG.debug("toString");
 		return "BbsMember [id=" + id + ", title=" + title + ", name=" + name + 
 				", date=" + date + "]";
 	}

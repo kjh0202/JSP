@@ -7,8 +7,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BbsDAO {
+	private static final Logger LOG = LoggerFactory.getLogger(BbsDAO.class);
+
     private static final String USERNAME = "javauser";
     private static final String PASSWORD = "javapass";
     private static final String URL = "jdbc:mysql://localhost:3306/world?verifyServerCertificate=false&useSSL=false";
@@ -23,7 +27,9 @@ public class BbsDAO {
 		}
     }
 	
+
     public void createBbsTable() {
+    	LOG.trace("createBbsTable_시작");
     	String query = "create table if not exists bbs (" + 
     			"  id int unsigned not null auto_increment," + 
     			"  memberId int unsigned not null," + 
@@ -38,19 +44,23 @@ public class BbsDAO {
 			pStmt = conn.prepareStatement(query);
 			
 			pStmt.execute();
+			LOG.trace("테이블생성_성공");
 		} catch (Exception e) {
+			LOG.trace("테이블생성_실패");
 			e.printStackTrace();
 		} finally {
 			try {
 				if (pStmt != null && !pStmt.isClosed()) 
 					pStmt.close();
 			} catch (SQLException se) {
+				LOG.trace("쿼리문_에러");
 				se.printStackTrace();
 			}
 		}	
     }
     
     public int getCount() {
+    	LOG.trace("getCount_시작");
 		String query = "select count(*) from bbs;";
 		PreparedStatement pStmt = null;
 		int count = 0;
@@ -62,6 +72,7 @@ public class BbsDAO {
 			}
 			rs.close();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -71,10 +82,12 @@ public class BbsDAO {
 				se.printStackTrace();
 			}
 		}
+		LOG.trace("getCount_카운트 값 가져오기 성공");
 		return count;
 	}
     
 	public BbsDTO selectOne(int id) {
+		LOG.trace("selectOne_시작");
 		String query = "select * from bbs where id=?;";
 		PreparedStatement pStmt = null;
 		BbsDTO bDto = new BbsDTO();
@@ -91,6 +104,7 @@ public class BbsDAO {
 			}
 			rs.close();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -100,10 +114,12 @@ public class BbsDAO {
 				se.printStackTrace();
 			}
 		}
+		LOG.trace("selectOne_성공");
 		return bDto;
 	}
 	
 	public void updateBbs(BbsDTO bDto) {
+		LOG.trace("updateBbs_시작");
 		PreparedStatement pStmt = null;
 		//String date = getCurrentDBTime();
 		String query = "update bbs set title=?, date=now(), content=? where id=?;";
@@ -116,6 +132,7 @@ public class BbsDAO {
 			pStmt.setInt(3, bDto.getId());
 			pStmt.executeUpdate();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -128,6 +145,7 @@ public class BbsDAO {
 	}
 	
 	public void insertBbs(BbsDTO bDto) {
+		LOG.trace("insertBbs_시작");
 		PreparedStatement pStmt = null;
 		String query = "insert into bbs (memberId, title, content) values(?, ?, ?);";
 		pStmt = null;
@@ -138,6 +156,7 @@ public class BbsDAO {
 			pStmt.setString(3, bDto.getContent());		
 			pStmt.executeUpdate();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -150,6 +169,7 @@ public class BbsDAO {
 	}
 	
 	public void deleteBbs(int id) {
+		LOG.trace("deleteBbs_시작");
 		String query = "delete from bbs where id=?;";
 		PreparedStatement pStmt = null;
 		try {
@@ -157,6 +177,7 @@ public class BbsDAO {
 			pStmt.setInt(1, id);
 			pStmt.executeUpdate();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -169,6 +190,7 @@ public class BbsDAO {
 	}
 	
 	public BbsMember ViewData(int id) {
+		LOG.trace("ViewData_시작");
 		String query = "select bbs.id, bbs.title, member.name, bbs.date, bbs.content from bbs " + 
 				"inner join member on bbs.memberId=member.id where bbs.id=?;";;
 		PreparedStatement pStmt = null;
@@ -187,6 +209,7 @@ public class BbsDAO {
 			}
 			rs.close();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -196,10 +219,12 @@ public class BbsDAO {
 				se.printStackTrace();
 			}
 		}
+		LOG.trace("ViewData_성공");
 		return bmDto;
 	}
 	
 	public List<BbsMember> selectJoinAll(int page) {
+		LOG.trace("selectJoinAll_시작");
 		int offset = 0;
 		String query = null;
 		if (page == 0) {	// page가 0이면 모든 데이터를 보냄
@@ -227,6 +252,7 @@ public class BbsDAO {
 			}
 			rs.close();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -236,10 +262,12 @@ public class BbsDAO {
 				se.printStackTrace();
 			}
 		}
+		LOG.trace("selectJoinAll_성공");
 		return bmList;
 	}
 	
 	public String getCurrentDBTime() {
+		LOG.trace("getCurrentDBTime_시작");
 		String query = "select now();";
 		PreparedStatement pStmt = null;
 		String ts = null;
@@ -251,6 +279,7 @@ public class BbsDAO {
 			}
 			rs.close();
 		} catch (Exception e) {
+			LOG.trace("예외발생");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -260,6 +289,7 @@ public class BbsDAO {
 				se.printStackTrace();
 			}
 		}
+		LOG.trace("getCurrentDBTime_성공");
 		return ts;
 	}
 	
